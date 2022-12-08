@@ -5,6 +5,8 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
+#include <vector>
+#include <numeric>
 
 using namespace std;
 
@@ -96,14 +98,17 @@ int algo(ifstream & file)
         
     // }
 
-    auto round_points = [] (int total_points, )
+    vector<int> all_rounds{};
+
+    auto calculate_round_points = [] (string line) 
     {
+        return 1;
+    };
+    
+    transform(istream_iterator<string>(file), istream_iterator<string>(), 
+              back_inserter(all_rounds), calculate_round_points);
 
-    }
-
-    accumulate(istream_iterator<char>(file), istream_iterator<char>(), 0, )
-
-    return my_points;
+    return 1;//accumulate(begin(all_rounds), end(all_rounds), 0);
 }
 
 int main()
