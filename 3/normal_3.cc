@@ -3,30 +3,25 @@
 #include <unordered_map>
 #include <iostream>
 #include <typeinfo>
+#include <algorithm>
 
 using namespace std;
 
 unordered_map<char, int> generate_priority_map()
 {
-    // FIXME: string stream?
-    string lowercase {"abcdefghijklmnopqrstuvwxyz"};
-    string uppercase {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-    cout << typeid(uppercase[1]).name() << endl;
-    cout << typeid(uppercase[26]).name() << endl;
-    cout << typeid(uppercase[1]).name() << endl;
+    string letters {"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 
     unordered_map<char, int> priority {};
 
-    // FIXME: transform?
-    for(int i{0}; i < 26; i++)
+    int index{0};
+    auto set_char_values = [index](char c) mutable
     {
-       priority[lowercase[i]] = i + 1;
-    }
+        index++;
+        return std::make_pair(c, index);
+    };
 
-    for(int i{26}; i < 52; i++)
-    {
-       priority[uppercase[i-26]] = i + 1;
-    }
+    std::transform(letters.begin(), letters.end(), 
+                   std::inserter(priority, priority.end()), set_char_values);
 
     return priority;
 }

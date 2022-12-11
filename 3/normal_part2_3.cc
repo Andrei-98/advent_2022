@@ -4,35 +4,30 @@
 #include <iostream>
 #include <typeinfo>
 #include <set>
+#include <algorithm>
+#include <iterator>
 
 using namespace std;
 
 
-unordered_map<char, int> generate_priority_map()
+unordered_map<char, int> generate_priority_map2()
 {
-    // FIXME: string stream?
-    string lowercase {"abcdefghijklmnopqrstuvwxyz"};
-    string uppercase {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-    cout << typeid(uppercase[1]).name() << endl;
-    cout << typeid(uppercase[26]).name() << endl;
-    cout << typeid(uppercase[1]).name() << endl;
+    string letters {"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"};
 
     unordered_map<char, int> priority {};
 
-    // FIXME: transform?
-    for(int i{0}; i < 26; i++)
+    int index{0};
+    auto set_char_values = [index](char c) mutable
     {
-       priority[lowercase[i]] = i + 1;
-    }
+        index++;
+        return std::make_pair(c, index);
+    };
 
-    for(int i{26}; i < 52; i++)
-    {
-       priority[uppercase[i-26]] = i + 1;
-    }
+    std::transform(letters.begin(), letters.end(), 
+                   std::inserter(priority, priority.end()), set_char_values);
 
     return priority;
 }
-
 
 
 int find_matching_letters(ifstream & file, 
@@ -41,7 +36,7 @@ int find_matching_letters(ifstream & file,
     string elf1 {};
     string elf2 {};
     string elf3 {};
-    // doing this in case part 2 has multiple occurances
+
     int total_value {};
 
     while(getline(file, elf1))
@@ -52,8 +47,21 @@ int find_matching_letters(ifstream & file,
         set<char> elem_elf1{begin(elf1), end(elf1)};
         set<char> elem_elf2{begin(elf2), end(elf2)};
         set<char> elem_elf3{begin(elf3), end(elf3)};
-    }
 
+        set<char> elf1_elf2{};
+        set_intersection(begin(elem_elf1), end(elem_elf1),
+                         begin(elem_elf2), end(elem_elf2),
+                         inserter(elf1_elf2, begin(elf1_elf2)));
+
+        set<char> final_set{};
+        set_intersection(begin(elf1_elf2), end(elf1_elf2),
+                         begin(elem_elf3), end(elem_elf3),
+                         inserter(final_set, begin(final_set)));
+        
+        char first = *begin(final_set);
+        total_value += priority.at(first);
+
+    }
 
     return total_value;
 
@@ -62,10 +70,10 @@ int find_matching_letters(ifstream & file,
 
 int main()
 {
-    ifstream file{"input_full.txt"}; // 157
-    // ifstream file{"input_example.txt"}; // 157
+    ifstream file{"input_full.txt"}; // 2607
+    // ifstream file{"input_example.txt"}; // 
 
-    unordered_map<char, int> priority {generate_priority_map()};
+    unordered_map<char, int> priority {generate_priority_map2()};
 
     int value {find_matching_letters(file, priority)};
 
