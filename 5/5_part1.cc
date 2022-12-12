@@ -20,6 +20,8 @@ void print_storage(map<int, vector<char>> const& storage)
 
         top_crates += i.second.back();
 
+        //copy(first(i.second), end(i.second), std::output_iterator(cout, " "));
+
         for ( auto const & j : i.second )
         {
             cout << j << " ";
