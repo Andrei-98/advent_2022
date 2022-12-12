@@ -7,24 +7,30 @@
 #include <vector>
 #include <sstream>
 #include <map>
-#include <stack>
+#include <vector>
 
 using namespace std;
 
-void print_storage(map<int, stack<char>> const& storage)
+void print_storage(map<int, vector<char>> const& storage)
 {
     string top_crates;
     for ( auto const & i : storage)
     {
         cout << i.first << " "; 
 
-        top_crates += i.second.top();
+        top_crates += i.second.back();
+
+        for ( auto const & j : i.second )
+        {
+            cout << j << " ";
+        }
+        cout << endl;
     }
-    cout << top_crates << endl;
+
+    cout << "Top crates are: " << top_crates << endl;
 }
 
-
-map<int, stack<char>> create_creates(ifstream & file)
+map<int, vector<char>> create_creates(ifstream & file)
 {
     vector<string> lines{};
     string line;
@@ -39,21 +45,26 @@ map<int, stack<char>> create_creates(ifstream & file)
     }
 
     reverse(begin(lines), end(lines));
-    map<int, stack<char>> crates_positions{};
+    map<int, vector<char>> crates_positions{};
 
     string numbers{lines[0]};
+    // [B] [T] [M] [B] [J] [C] [T] [G] [N]
+    //  1   2   3   4   5   6   7   8   9 
+    // go number by number, start with 1, check if the letter above is a space,
+    // if not add that letter to the map coresponding the key 1, keep going up for 1
+    // etc...
     for (int i{}; i < numbers.size(); i++)
     {
         if(numbers[i] != ' ')
         {
             int current_number {atoi(&numbers[i])};
-            stack<char> creates_for_current {};
+            vector<char> creates_for_current {};
 
             for (int row{1}; row < lines.size(); row++)
             {
                 char possible_letter {lines[row][i]};
                 if(possible_letter != ' ')
-                    creates_for_current.push(possible_letter);
+                    creates_for_current.push_back(possible_letter);
                 else
                     continue;
             }
@@ -64,7 +75,7 @@ map<int, stack<char>> create_creates(ifstream & file)
 }
 
 
-void execute_crane_movements(ifstream & file, map<int, stack<char>> & crates)
+void execute_crane_movements(ifstream & file, map<int, vector<char>> & crates)
 {
     string line;
     while(getline(file, line))
@@ -76,12 +87,9 @@ void execute_crane_movements(ifstream & file, map<int, stack<char>> & crates)
         line_stream >> move >> nr_of_crates >> from_string 
                     >> from >> to_string >> to;
 
-        for (int i{0}; i < nr_of_crates; i++)
-        {
-            char current_crate {crates[from].top()};
-            crates[from].pop();
-            crates[to].push(current_crate);
-        }
+        auto it = prev(crates[from].end(), nr_of_crates);
+        std::reverse_copy(it, crates[from].end(), back_inserter(crates[to]));
+        crates[from].erase(it, crates[from].end());
     }
 }
 
@@ -90,7 +98,7 @@ int main()
 {
     ifstream file {"full_input.txt"};
 
-    map<int, stack<char>> starting_crates {create_creates(file)};
+    map<int, vector<char>> starting_crates {create_creates(file)};
     execute_crane_movements(file, starting_crates);
     print_storage(starting_crates);
 
