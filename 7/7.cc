@@ -7,8 +7,10 @@
 #include <sstream>
 #include <queue>
 #include <iterator>
-#include <unordered_map>
+#include <map>
 #include <stack>
+#include <numeric>
+#include <unordered_map>
 
 using namespace std;
 
@@ -38,11 +40,10 @@ vector<vector<string>> load_file(string const& file_name)
 }
 
 
-// crawl through the input and crate a map
-unordered_map<string, pair<int, string>> create_tree(vector<vector<string>> & all_commands)
+map<string, pair<int, string>> create_tree(vector<vector<string>> & all_commands)
 {
     // name_of_dir, <size, parent>
-    unordered_map<string, pair<int, string>> tree {};
+    map<string, pair<int, string>> tree {};
     stack<string> cd_log {};
     cd_log.push("__ROOT__");
 
@@ -60,7 +61,8 @@ unordered_map<string, pair<int, string>> create_tree(vector<vector<string>> & al
             {
                 if (command[2] != "..")
                 {
-                    tree[command[2]] = make_pair(0, cd_log.top());
+                    tree.emplace(command[2], make_pair(0, cd_log.top()));
+                    //tree[command[2]] = make_pair(0, cd_log.top());
                     cd_log.push(command[2]);
                 } else 
                 {
@@ -82,34 +84,113 @@ unordered_map<string, pair<int, string>> create_tree(vector<vector<string>> & al
 }
 
 
-int tree_crawler(unordered_map<string, pair<int, string>> const& tree)
+unordered_map<string, int> tree_crawler(map<string, pair<int, string>> & tree)
 {
     unordered_map<string, int> dir_sizes{};
-    for (auto const& dir : tree)
+
+    for (auto & dir : tree)
     {
         string dir_name {dir.first};
         int current_size {dir.second.first};
-        string parent {dir.second.second};
+        // int current_size {tree[dir_name].first};
 
+        // cout << "DIR " << dir_name << " size " << current_size << endl;
+
+        // auto add_my_children = [&dir_name] (map<string, pair<int, string>> cur_dir,
+        //                                     int size)
+        // {
+        //     if(cur_dir.second.second == dir_name)
+        //         return stoi(cur_dir.second.first);
+        //     return 0;
+        // };
+
+        // int total = accumulate(cbegin(tree), cend(tree), current_size, add_my_children);
+
+        for (auto const& possible_child : tree)
+        {
+            if (possible_child.second.second == dir_name)
+            {
+                // cout << "Found my child " << possible_child.first 
+                //      << " adding size " << possible_child.second.first << endl;
+                current_size += possible_child.second.first;
+            }
+        }
+        // cout << "FINISHED - DIR " << dir_name << "size " << current_size << endl;
+        dir_sizes.emplace(dir_name, current_size);
     }
+
+    return dir_sizes;
 }
+
+
+int accumulate_dirs_sizes_if(unordered_map<string, int> & dirs, int max_size)
+{
+
+    auto check_size = [max_size] (int total_size, pair<string, int> dir) 
+    { 
+        int dir_size {dir.second};
+        if (dir_size < max_size)
+            return dir_size + total_size;
+        return total_size;
+    };
+
+    return accumulate(begin(dirs), end(dirs), 0, check_size);
+}
+
+
+int accumulate_dirs_sizes_if2(unordered_map<string, int> & dirs, int max_size)
+{
+    int total_size;
+    for (auto const& dir : dirs)
+    {
+        if(dir.second <= max_size)
+        {
+            total_size += dir.second;
+        }
+    }
+
+    return total_size;
+
+}
+
+
+void print_tree(map<string, pair<int, string>> const& tree)
+{
+    for (auto const& node : tree)
+    {
+        cout << "DIR " << node.first << " SIZE " << node.second.first << " PARENT " <<
+             node.second.second << endl;
+    }
+
+}
+
+
+
 
 
 int main()
 {
-    string file_name {"test_input.txt"}; // 95437
+    // string file_name {"test_input.txt"}; // 95437
+    // string file_name {"test_input2.txt"}; // 95437
+    string file_name {"full_input.txt"}; // 1.000.000 - 2.000.000
 
     vector<vector<string>> lines {load_file(file_name)};
 
-    unordered_map<string, pair<int, string>> tree {create_tree(lines)};
+    map<string, pair<int, string>> tree {create_tree(lines)};
+    print_tree(tree);
 
     cout << tree["/"].first << endl; // 2m+
     cout << tree["a"].second << endl; // "/"
     cout << tree["d"].first << endl; // "/"
     cout << tree["d"].second << endl; // "/"
 
-    int total_sieze {tree_crawler(tree)};
+    unordered_map<string, int> dir_sizes {tree_crawler(tree)};
 
+    cout << "HOOOOO" << dir_sizes["zjghthcb"] << endl;
+
+    int total_size {accumulate_dirs_sizes_if2(dir_sizes, 100001)};
+
+    cout << total_size << endl;
 
     return 0;
 }
