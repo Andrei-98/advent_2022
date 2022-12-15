@@ -32,11 +32,6 @@ vector<vector<string>> load_file(string const& file_name)
         copy(istream_iterator<string>(line_stream), istream_iterator<string>(),
              back_inserter(command));
         commands.push_back(command);
-
-        // print
-        // copy(cbegin(command), cend(command),
-        //     ostream_iterator<string>(cout, " "));
-        // cout << endl;
     }
     return commands;
 }
