@@ -1,4 +1,4 @@
-
+#include <cassert>
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -6,7 +6,6 @@
 #include <string>
 #include <sstream>
 #include <iterator>
-#include <unordered_map>
 #include <exception>
 
 using namespace std;
@@ -41,42 +40,94 @@ Forest build_matrix(string file_name)
     return forest;
 }
 
-bool is_tree_in_row_hidden(vector<size_t> const& row, size_t from, size_t to, size_t my_size)
+size_t get_score_left(vector<size_t> const& row, const size_t my_tree_pos, 
+                     const size_t my_tree_size)
 {
-    // 2 5 5 1 2
-    for ( size_t i {from}; i < to; i++ )
+    size_t score {0};
+
+    for(int i {my_tree_pos - 1}; i >= 0; i--)
     {
-        if(row[i] >= my_size)
-            return true;
+        if (row[i] >= my_tree_size)
+        {
+            score++;
+            return score;
+        }
+        else 
+            score++;
     }
-    return false;
+    return score;
+}
+
+// size_t get_score(vector<size_t> const& row, size_t const my_tree_pos,
+//                  size_t const my_tree_size)
+// {
+//     find_if()
+
+// }
+
+
+size_t get_score_right(vector<size_t> const& row, const size_t my_tree_pos,
+                      const size_t my_tree_size)
+{
+    size_t score {0};
+
+    for(size_t i {my_tree_pos + 1}; i < row.size(); i++)
+    {
+        if (row[i] >= my_tree_size)
+        {
+            score++;
+            return score;
+        }
+        else
+            score++;
+    }
+    return score;
 }
 
 
-bool is_tree_in_column_hidden(Forest const& forest, size_t cur_column, 
-                              size_t from, size_t to, size_t my_size)
+size_t get_score_top(Forest const& forest, size_t const my_tree_pos,
+                     size_t const my_tree_size, size_t const my_tree_row)
 {
-    // cout << endl;
-    // cout << "Curent column: " << cur_column << " from " << from << " to " << to << " my size " << my_size << endl;
-    for (size_t row {from}; row < to; row++)
+    size_t score {0};
+
+    for(int i {my_tree_row - 1}; i >= 0; i--)
     {
-        size_t cur_size {forest.matrix[row][cur_column]};
-        bool hidden { cur_size >= my_size};
-        // cout << "LOOKING AT " << cur_size << " vs " << cur_size << endl;
-
-        if (hidden)
+        if(forest.matrix[i][my_tree_pos] >= my_tree_size)
         {
-            return true;
+            score++;
+            return score;
         }
+        else
+            score++;
     }
-    return false;
 
+    return score;
+}
+
+
+size_t get_score_bottom(Forest const& forest, size_t const my_tree_pos,
+                     size_t const my_tree_size, size_t const my_tree_row)
+{
+    size_t score {0};
+
+    for(size_t i {my_tree_row + 1}; i < forest.matrix.size(); i++)
+    {
+        if(forest.matrix[i][my_tree_pos] >= my_tree_size)
+        {
+            score++;
+            return score;
+        }
+        else
+            score++;
+    }
+
+    return score;
 }
 
 
 size_t forest_lazer(Forest const& forest)
 {
-    size_t hidden_trees {};
+    size_t top_score {};
     size_t total_trees { forest.matrix.size() * forest.matrix[0].size()};
 
     for ( size_t row {0}; row < forest.matrix.size(); row++ )
@@ -85,52 +136,66 @@ size_t forest_lazer(Forest const& forest)
         for ( size_t column {0}; column < row_size; column++)
         {
             // edge
-            if (column == 0 || column == row_size || row == 0 || row == forest.matrix.size() )
+            if (column == 0 || column == row_size || row == 0 || row == forest.matrix.size() - 1 )
                 continue;
 
             size_t cur_tree {forest.matrix[row][column]};
             vector<size_t> cur_row {forest.matrix[row]};
 
-            // edge
 
-            bool left {is_tree_in_row_hidden(cur_row, 0, column, cur_tree)};
-            bool right {is_tree_in_row_hidden(cur_row, column + 1, row_size, cur_tree)};
+            size_t left {get_score_left(cur_row, column, cur_tree)};
+            size_t right {get_score_right(cur_row, column, cur_tree)};
 
-            bool top {is_tree_in_column_hidden(forest, column, 0, row, cur_tree)};
-            bool bottom {is_tree_in_column_hidden(forest, column, row+1, forest.matrix.size(), cur_tree)};
+            size_t top {get_score_top(forest, column,  cur_tree, row)};
+            size_t bottom {get_score_bottom(forest, column, cur_tree, row)};
 
-            // if (row == 2 && column == 3)
-            // {
-            //     cout << "  left " << left 
-            //         << " right " << right
-            //         << " top " << top
-            //         << " bottom " << bottom << endl;
-            //     return 1;
-            // }
-
-
-            if ( left && right && top && bottom )
+            size_t current_score {left * right * top * bottom };
+            if (current_score > top_score)
             {
-                hidden_trees++;
+                top_score = current_score;
             }
         }
-
     }
-
-    return total_trees - hidden_trees;
+    return top_score; 
 }
 
 
 int main()
 {
-    // Forest matrix { build_matrix("test_input.txt") }; // 21
-    Forest matrix { build_matrix("full_input.txt") }; // 1736 
-    // Forest matrix { build_matrix("test_input2.txt") }; // 68 < x <?
+    // Forest matrix { build_matrix("test_input.txt") }; // 8
+    Forest matrix { build_matrix("full_input.txt") }; // 268800 
+    // Forest matrix { build_matrix("test_input2.txt") }; // 72 
+
+    // Testing
+    vector<size_t> test_left {3, 0, 3, 7, 3, 9, 2, 0, 1};
+    size_t test_left1 {get_score_left(test_left, 2, 3)}; // 1
+    std::cout << "RESULT = " << test_left1 << endl;
+    assert (test_left1 == 2);
+
+    test_left1 = get_score_left(test_left, 3, 7); // 1
+    std::cout << "RESULT = " << test_left1 << endl;
+    assert (test_left1 == 3);
+
+    test_left1 = get_score_left(test_left, 1, 0); // 1
+    std::cout << "RESULT = " << test_left1 << endl;
+    assert (test_left1 == 1);
+
+    test_left1 = get_score_left(test_left, 7, 0); // 1
+    std::cout << "RESULT = " << test_left1 << endl;
+    assert (test_left1 == 1);
+
+    test_left1 = get_score_left(test_left, 5, 9); // 1
+    std::cout << "RESULT = " << test_left1 << endl;
+    assert (test_left1 == 5);
 
 
-    size_t visible_trees { forest_lazer(matrix) };
+    vector<size_t> test_right {2, 5, 5, 1, 2, 9, 2 ,0 ,9};
+    size_t score = get_score_right(test_right, 2, 5);
+    std::cout << "RESULT = " << score << endl;
+    assert (score == 3);
 
-    cout << "Nr of visible trees is: " << visible_trees << endl;
+    size_t top_score { forest_lazer(matrix) };
 
+    cout << "Top Score is: " << top_score << endl;
     return 0;
 }

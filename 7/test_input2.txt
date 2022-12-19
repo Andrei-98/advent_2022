@@ -1,0 +1,33 @@
+
+$ cd /
+$ ls
+1 a
+1 a
+dir a
+dir b
+$ cd a
+$ ls
+1 a
+1 a
+1 a
+1 a
+1 a
+dir c
+dir d
+$ cd c
+$ ls
+1 algorithm
+$ cd ..
+$ cd d
+$ ls
+1 algorithm
+1 algorithm
+$ cd ..
+$ cd f
+$ ls
+1 algorithm
+dir x
+$ cd x
+$ ls
+1 algorithm
+1 algorithm
