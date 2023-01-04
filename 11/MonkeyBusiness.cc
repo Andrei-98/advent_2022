@@ -8,9 +8,9 @@ using namespace std;
 class Monkey
 {
 public:
-    Monkey(queue<int> & items, int id, int true_throw_to,
-           int false_throw_to, char operation_type,
-           string value, int division)
+    Monkey(queue<long long> & items, long long id, int true_throw_to,
+           long long false_throw_to, char operation_type,
+           string value, long long division)
         : items{items}, id{id}, true_throw_to{true_throw_to}, 
         false_throw_to{false_throw_to}, operation_type{operation_type},
         operation_value{}, division{division}, inspections {}, old_mode{false}
@@ -18,16 +18,16 @@ public:
             if (value == "old")
                 old_mode = true;
             else
-                operation_value = stoi(value);
+                operation_value = stol(value);
 
         };
 
-    pair<int, int> toss()
+    pair<long long, long long> toss()
     {
-        int item {items.front()};
+        long long item {items.front()};
         items.pop();
 
-        item = recalculate_stress_for_item(item) / 3; // / 3;
+        item = recalculate_stress_for_item(item); // / 3;
         inspections++;
 
         if(test_division(item))
@@ -42,34 +42,34 @@ public:
         }
     }
 
-    void add_to_items(int item)
+    void add_to_items(long long item)
     {
         items.push(item);
     }
 
-    int get_nr_of_items() const
+    long long get_nr_of_items() const
     {
         return items.size();
     }
 
-    int get_inspections() const
+    long long get_inspections() const
     {
         return inspections;
     }
 
 private:
-    queue<int> items;
-    int const id;
-    int const true_throw_to;
-    int const false_throw_to;
+    queue<long long> items;
+    long long const id;
+    long long const true_throw_to;
+    long long const false_throw_to;
     char const operation_type;
-    int operation_value;
-    int const division;
-    int inspections;
+    long long operation_value;
+    long long const division;
+    long long inspections;
     bool old_mode;
 
 
-    int recalculate_stress_for_item(int item)
+    long long recalculate_stress_for_item(long long item)
     {
         if(old_mode)
             operation_value = item;
@@ -90,7 +90,7 @@ private:
     }
 
 
-    bool test_division(int const stress)
+    bool test_division(long long const stress)
     {
         return (stress % division) == 0;
     }
@@ -102,26 +102,26 @@ class MonkeyBusiness
 {
 public:
     MonkeyBusiness(vector<Monkey> & monkeys)
-    :monkeys{monkeys}, total_inspections{} 
+    :monkeys{monkeys}
     {};
 
     void round_robin()
     {
         cout << "IN ROUND ROBIND" << endl;
         size_t current_index {0};
-        int round {0};
+        long long round {0};
 
         while(true)
         {
             Monkey & current_monkey {monkeys[current_index]};
             cout << "IN ROUND ROBIND" << endl;
 
-            int iterations {current_monkey.get_nr_of_items()};
+            long long iterations {current_monkey.get_nr_of_items()};
 
-            for(int i {iterations}; i != 0; i--)
+            for(long long i {iterations}; i != 0; i--)
             {
                 cout << " -- MONKEY " << current_index << endl;
-                pair<int, int> item_to_monkey(current_monkey.toss());
+                pair<long long, long long> item_to_monkey(current_monkey.toss());
                 monkeys[item_to_monkey.second].add_to_items(item_to_monkey.first);
             }
 
@@ -143,36 +143,19 @@ public:
     }
 
 
-    int calculate_monkey_business()
+    long long calculate_monkey_business()
     {
-        // for (auto const & i : monkeys)Jjj
-        // {
-        //     cout << i.get_inspections() << endl;
-        // }
+        vector<long long> total_inspections;
         transform(begin(monkeys), end(monkeys), back_inserter(total_inspections),
                   [] (Monkey const& monke) { return monke.get_inspections();});
         
-        int largest, second_largest {};
+        sort(begin(total_inspections), end(total_inspections), greater<long long>());
 
-        for (auto i : total_inspections)
-        {
-            if(i > largest) 
-            {
-                second_largest = largest;
-                largest = i;
-            } else if (i > second_largest)
-            {
-                second_largest = i;
-            }
-        }
-        cout << largest << " " << second_largest << endl;
-
-        return largest * second_largest;
+        return total_inspections[0] * total_inspections[1];
     }
 
 private:
     vector<Monkey> monkeys;
-    vector<int> total_inspections;
 };
 
 

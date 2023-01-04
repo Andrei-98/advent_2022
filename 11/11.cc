@@ -24,14 +24,14 @@ Monkey make_monkey(string const& monkey_id_line, string const& items_line,
     // get id
     // Monkey 0: // gets 0
     string trash;
-    int id; 
+    long long id; 
     monkey_id_stream >> trash;
     monkey_id_stream >> id;
 
     // get queue of items
     // Starting items: 54, 65, 75, 74 // gets 54, 65, 75, 74
-    queue<int> items;
-    int item;
+    queue<long long> items;
+    long long item;
     char trash_comma;
     // eat Starting items:
     monkey_items >> trash >> trash;
@@ -51,7 +51,7 @@ Monkey make_monkey(string const& monkey_id_line, string const& items_line,
     monkey_operation >> value;
 
     // get divisible value
-    int test_division;
+    long long test_division;
     monkey_test >> trash >> trash >> trash >> test_division;
 
     // get true_throw_to
@@ -59,8 +59,8 @@ Monkey make_monkey(string const& monkey_id_line, string const& items_line,
     // If true: throw to monkey 2
     monkey_true >> trash >> trash >> trash >> trash >> trash;
     monkey_false >> trash >> trash >> trash >> trash >> trash;
-    int true_throw_to;
-    int false_throw_to;
+    long long true_throw_to;
+    long long false_throw_to;
     monkey_true >> true_throw_to;
     monkey_false >> false_throw_to;
 
@@ -112,14 +112,14 @@ MonkeyBusiness read_file(string file_name)
 // }
 
 
-int main()
+long long main()
 {
     MonkeyBusiness mb {read_file("test_input.txt")}; // 10605
     // MonkeyBusiness mb {read_file("full_input.txt")}; // 90294 
 
     mb.round_robin();
 
-    int value {mb.calculate_monkey_business()};
+    long long value {mb.calculate_monkey_business()};
     cout << "MONKEY BUSINESS VALUE = " << value << endl;
 
     return 0;
